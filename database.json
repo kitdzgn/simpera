@@ -6,8 +6,8 @@
     "deadline": "2026-11-30T23:59",
     "announcement": "Batas akhir pengumpulan Perangkat Ajar Semester Ganjil adalah 30 November 2026 pukul 23.59 WIB. Pastikan dokumen berformat .PDF atau .DOCX.",
     "github": {
-      "owner": "",
-      "repo": "",
+      "owner": "kitdzgn",
+      "repo": "simpera",
       "branch": "main",
       "path": "database.json",
       "token": "",
