@@ -1,0 +1,2150 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIMPERA — Sistem Pengumpulan Perangkat Ajar Digital</title>
+  <meta name="description" content="Sistem Informasi Pengumpulan Perangkat Ajar Digital berbasis kelas dengan manajemen administrasi guru, verifikasi dokumen PDF/DOCX, pengingat WhatsApp, dan sinkronisasi database GitHub." />
+  <meta name="keywords" content="perangkat ajar, administrasi guru, rpp, modul ajar, kurikulum merdeka, manajemen sekolah, feri apriansah" />
+  <meta name="author" content="Feri Apriansah, M.Pd. Gr." />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              200: '#fed7aa',
+              300: '#fdba74',
+              400: '#fb923c',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+              900: '#7c2d12',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Latar belakang dinamis lembut */
+    body {
+      background: radial-gradient(circle at 12% 18%, #ffedd5 0%, #fff7ed 38%, #f8fafc 100%);
+      min-height: 100vh;
+    }
+
+    /* Efek Glassmorphism Oranye */
+    .glass-sidebar {
+      background: linear-gradient(165deg, rgba(234, 88, 12, 0.90) 0%, rgba(194, 65, 12, 0.93) 55%, rgba(154, 52, 18, 0.96) 100%);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-right: 1px solid rgba(255, 255, 255, 0.22);
+      box-shadow: 0 20px 45px -15px rgba(194, 65, 12, 0.35);
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(251, 146, 60, 0.22);
+      box-shadow: 0 10px 30px -10px rgba(234, 88, 12, 0.08);
+    }
+
+    .glass-banner {
+      background: linear-gradient(125deg, rgba(249, 115, 22, 0.92) 0%, rgba(234, 88, 12, 0.88) 60%, rgba(251, 146, 60, 0.92) 100%);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Animasi Running Text / Marquee */
+    .marquee-container {
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+    }
+    .marquee-content {
+      display: inline-block;
+      padding-left: 100%;
+      animation: marqueeAnim 24s linear infinite;
+    }
+    .marquee-container:hover .marquee-content {
+      animation-play-state: paused;
+    }
+    @keyframes marqueeAnim {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 237, 213, 0.4);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(249, 115, 22, 0.45);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(234, 88, 12, 0.75);
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased flex flex-col min-h-screen">
+
+  <!-- Toast Notification Container (Pengganti alert) -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- =========================================================
+       HALAMAN LOGIN (CLEAN, MODERN, ELEGAN - HANYA FORM LOGIN)
+       ========================================================= -->
+  <main id="login-view" class="flex-1 flex flex-col items-center justify-center px-4 py-10">
+    <div class="w-full max-w-md glass-card rounded-3xl p-8 sm:p-10 shadow-2xl border border-orange-200/60">
+      <!-- Logo / Icon -->
+      <div class="flex flex-col items-center mb-8">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/30 mb-4">
+          <i data-lucide="folder-kanban" class="w-8 h-8"></i>
+        </div>
+        <h1 class="font-display text-2xl font-extrabold tracking-tight text-slate-900">SIMPERA</h1>
+      </div>
+
+      <!-- Form Login -->
+      <form id="login-form" class="space-y-5" autocomplete="off">
+        <div>
+          <label for="login-username" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Username</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-orange-500">
+              <i data-lucide="user" class="w-5 h-5"></i>
+            </span>
+            <input
+              type="text"
+              id="login-username"
+              required
+              placeholder="Masukkan username"
+              class="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/90 border border-orange-200/80 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="login-password" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Password</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-orange-500">
+              <i data-lucide="lock" class="w-5 h-5"></i>
+            </span>
+            <input
+              type="password"
+              id="login-password"
+              required
+              placeholder="Masukkan password"
+              class="w-full pl-11 pr-11 py-3.5 rounded-2xl bg-white/90 border border-orange-200/80 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
+            />
+            <button type="button" id="toggle-password" aria-label="Tampilkan sandi" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-orange-600 transition">
+              <i data-lucide="eye" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-lg shadow-orange-500/30 active:scale-[0.99] transition flex items-center justify-center gap-2"
+        >
+          <span>Masuk</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Pilihan Peran di Bawah Form Login -->
+        <div class="pt-3 border-t border-orange-100">
+          <div class="grid grid-cols-2 gap-2.5 p-1.5 rounded-2xl bg-orange-50/90 border border-orange-200/60" role="radiogroup" aria-label="Pilih Peran Masuk">
+            <button
+              type="button"
+              data-role="teacher"
+              class="role-selector-btn py-2.5 px-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition bg-white text-orange-600 shadow-sm"
+            >
+              <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+              <span>Guru</span>
+            </button>
+            <button
+              type="button"
+              data-role="admin"
+              class="role-selector-btn py-2.5 px-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition text-slate-500 hover:text-orange-600"
+            >
+              <i data-lucide="shield-check" class="w-4 h-4"></i>
+              <span>Admin</span>
+            </button>
+          </div>
+          <input type="hidden" id="login-role" value="teacher" />
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- =========================================================
+       APLIKASI UTAMA (DASHBOARD GURU & DASHBOARD ADMIN)
+       ========================================================= -->
+  <div id="app-view" class="hidden flex-1 flex flex-col lg:flex-row min-h-screen">
+    <!-- Backdrop Mobile Sidebar -->
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 hidden lg:hidden"></div>
+
+    <!-- Sidebar Glassy Orange -->
+    <aside id="sidebar" class="glass-sidebar text-white w-72 fixed lg:sticky top-0 left-0 h-screen z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col justify-between p-5">
+      <div>
+        <!-- Brand Header -->
+        <div class="flex items-center justify-between pb-5 mb-5 border-b border-white/20">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+              <i data-lucide="folder-kanban" class="w-6 h-6 text-white"></i>
+            </div>
+            <div>
+              <span class="font-display font-extrabold text-lg tracking-tight block leading-none">SIMPERA</span>
+              <span id="sidebar-role-badge" class="text-[11px] uppercase tracking-widest text-orange-100 font-semibold mt-1 inline-block">Portal Guru</span>
+            </div>
+          </div>
+          <button id="close-sidebar-btn" class="lg:hidden p-2 rounded-xl bg-white/10 hover:bg-white/20">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Profil Singkat Pengguna -->
+        <div class="p-3.5 rounded-2xl bg-white/15 border border-white/20 mb-6">
+          <div class="flex items-center gap-3">
+            <div id="user-avatar-initials" class="w-10 h-10 rounded-xl bg-white text-orange-600 font-bold flex items-center justify-center shrink-0 shadow">
+              GR
+            </div>
+            <div class="min-w-0">
+              <p id="sidebar-user-name" class="font-semibold text-sm truncate">Nama Pengguna</p>
+              <p id="sidebar-user-sub" class="text-xs text-orange-100 truncate">Kelas X-A</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigasi Dinamis -->
+        <nav id="sidebar-nav" class="space-y-1.5"></nav>
+      </div>
+
+      <!-- Tombol Keluar -->
+      <div class="pt-4 border-t border-white/20">
+        <button id="logout-btn" class="w-full py-3 px-4 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/25 text-white font-semibold text-sm flex items-center justify-center gap-2 transition">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span>Keluar Sesi</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Konten Utama -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <!-- Topbar Mobile + Running Text Pengumuman -->
+      <header class="sticky top-0 z-20 px-4 sm:px-8 pt-4 pb-2 bg-orange-50/80 backdrop-blur-md border-b border-orange-200/50">
+        <div class="flex items-center gap-3">
+          <button id="open-sidebar-btn" class="lg:hidden p-2.5 rounded-xl bg-orange-500 text-white shadow-md shadow-orange-500/20">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Running Text Pengumuman -->
+          <div class="flex-1 flex items-center gap-3 bg-white/90 border border-orange-200/80 rounded-2xl px-3.5 py-2 shadow-xs overflow-hidden">
+            <span class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-orange-500 text-white text-xs font-bold uppercase tracking-wider">
+              <i data-lucide="megaphone" class="w-3.5 h-3.5"></i>
+              Info
+            </span>
+            <div class="marquee-container flex-1 text-sm font-medium text-slate-700">
+              <div id="announcement-marquee" class="marquee-content">
+                Selamat datang di Sistem Pengumpulan Perangkat Ajar Digital. Harap unggah seluruh dokumen berformat PDF atau DOCX sebelum batas waktu yang ditentukan.
+              </div>
+            </div>
+          </div>
+
+          <!-- Tombol Notifikasi Cepat -->
+          <button id="header-notif-btn" class="relative p-2.5 rounded-2xl bg-white/90 border border-orange-200/80 text-slate-700 hover:text-orange-600 transition shadow-xs" title="Notifikasi & Pesan">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+            <span id="notif-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">0</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Area Konten Dinamis -->
+      <section class="flex-1 px-4 sm:px-8 py-6 space-y-6 max-w-7xl w-full mx-auto">
+        <!-- Banner Sapaan, Jam Realtime & Kalimat Afirmasi Harian -->
+        <div class="glass-banner rounded-3xl p-6 sm:p-7 text-white shadow-xl shadow-orange-500/15 relative overflow-hidden">
+          <div class="absolute -right-10 -top-10 w-44 h-44 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
+          <div class="absolute right-24 -bottom-12 w-36 h-36 rounded-full bg-amber-300/20 blur-xl pointer-events-none"></div>
+
+          <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="space-y-1.5 max-w-2xl">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-xs">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                <span id="daily-affirmation-tag">Afirmasi Hari Ini</span>
+              </div>
+              <h2 id="greeting-text" class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight">
+                Selamat Pagi, Bapak/Ibu Guru!
+              </h2>
+              <p id="daily-affirmation-text" class="text-orange-50 text-sm sm:text-base leading-relaxed italic">
+                "Setiap perangkat ajar yang disiapkan dengan hati adalah jembatan menuju masa depan generasi bangsa."
+              </p>
+            </div>
+
+            <!-- Jam & Tanggal Realtime -->
+            <div class="shrink-0 bg-white/15 backdrop-blur-md border border-white/25 rounded-2xl px-5 py-3.5 text-left md:text-right">
+              <div id="live-clock" class="font-display text-2xl sm:text-3xl font-extrabold tracking-wider tabular-nums">00:00:00</div>
+              <div id="live-date" class="text-xs text-orange-100 font-medium mt-0.5">Memuat tanggal...</div>
+              <div id="deadline-pill" class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/25 text-[11px] font-semibold">
+                <i data-lucide="clock" class="w-3 h-3"></i>
+                <span id="deadline-label">Batas: -</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kontainer Tab / Halaman Aktif -->
+        <div id="workspace-content" class="space-y-6"></div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="mt-auto py-5 px-4 sm:px-8 border-t border-orange-200/60 bg-white/60 backdrop-blur-xs text-center text-xs sm:text-sm text-slate-600">
+        &copy; <span id="current-year"></span> <strong>Feri Apriansah, M.Pd. Gr.</strong> |
+        <a href="https://www.grferi.my.id" target="_blank" rel="noopener noreferrer" class="text-orange-600 hover:text-orange-700 font-semibold underline decoration-orange-300 underline-offset-4">
+          www.grferi.my.id
+        </a>
+      </footer>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL PREVIEW DOKUMEN & MODAL FORM ADMIN
+       ========================================================= -->
+  <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div id="modal-box" class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-orange-100 overflow-hidden">
+      <div class="px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white flex items-center justify-between">
+        <h3 id="modal-title" class="font-display font-bold text-lg">Judul Modal</h3>
+        <button id="modal-close-btn" class="p-1.5 rounded-xl bg-white/15 hover:bg-white/25 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div id="modal-body" class="p-6 overflow-y-auto space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       LOGIKA APLIKASI & DATABASE TERINTEGRASI
+       ========================================================= -->
+  <script>
+    (function () {
+      const STORAGE_KEY = 'simpera_db_v1';
+
+      // Daftar 14 kalimat afirmasi yang berganti otomatis berdasarkan hari dalam tahun
+      const AFFIRMATIONS = [
+        "Setiap perangkat ajar yang disiapkan dengan hati adalah jembatan menuju masa depan generasi bangsa.",
+        "Ketertiban administrasi mencerminkan profesionalisme dan dedikasi tinggi seorang pendidik.",
+        "Langkah kecil merapikan dokumen hari ini menciptakan ketenangan mengajar sepanjang semester.",
+        "Guru hebat bukan hanya menginspirasi di kelas, tetapi juga terencana dalam setiap langkah pembelajaran.",
+        "Kualitas pembelajaran berawal dari perencanaan yang matang, terukur, dan bermakna.",
+        "Konsistensi Anda dalam melengkapi perangkat ajar adalah teladan nyata kedisiplinan bagi peserta didik.",
+        "Ilmu yang terstruktur dengan baik akan lebih mudah mengalir dan menyentuh hati siswa.",
+        "Terima kasih telah menjadi pilar pendidikan yang terus bertumbuh dan berinovasi setiap hari.",
+        "Perencanaan yang baik adalah separuh dari keberhasilan proses belajar mengajar di kelas.",
+        "Setiap dokumen yang Anda susun merupakan jejak karya terbaik dalam pengabdian pendidikan.",
+        "Semangat berkarya! Dedikasi Anda hari ini membentuk karakter pemimpin masa depan.",
+        "Kerapian administrasi memudahkan evaluasi dan meningkatkan mutu pembelajaran berkelanjutan.",
+        "Jadilah pendidik yang selalu hadir dengan kesiapan penuh, energi positif, dan ketulusan.",
+        "Keberhasilan siswa dimulai dari guru yang mempersiapkan segalanya dengan penuh tanggung jawab."
+      ];
+
+      // Database Awal (Default Seed)
+      const DEFAULT_DB = {
+        meta: {
+          appName: "SIMPERA",
+          schoolName: "SMA Negeri Nusantara",
+          academicYear: "2026/2027 - Semester Ganjil",
+          deadline: "2026-11-30T23:59",
+          announcement: "Batas akhir pengumpulan Perangkat Ajar Semester Ganjil adalah 30 November 2026 pukul 23.59 WIB. Pastikan dokumen berformat .PDF atau .DOCX.",
+          github: {
+            owner: "",
+            repo: "",
+            branch: "main",
+            path: "database.json",
+            token: "",
+            lastSync: null
+          },
+          whatsappWebhookUrl: ""
+        },
+        admin: {
+          username: "admin",
+          password: "123",
+          name: "Administrator Kurikulum"
+        },
+        classes: ["Kelas X-A", "Kelas X-B", "Kelas XI-IPA", "Kelas XI-IPS", "Kelas XII-IPA", "Kelas XII-IPS"],
+        categories: [
+          "Perencanaan Pembelajaran",
+          "Pelaksanaan & Bahan Ajar",
+          "Asesmen & Evaluasi"
+        ],
+        teachers: [
+          {
+            id: "tch-1",
+            name: "Feri Apriansah, M.Pd. Gr.",
+            nip: "199004122015031004",
+            subject: "Informatika",
+            className: "Kelas X-A",
+            whatsapp: "6281234567890",
+            username: "feri",
+            password: "123"
+          },
+          {
+            id: "tch-2",
+            name: "Siti Rahmawati, S.Pd.",
+            nip: "199208172019032011",
+            subject: "Matematika",
+            className: "Kelas X-B",
+            whatsapp: "6281298765432",
+            username: "siti",
+            password: "123"
+          },
+          {
+            id: "tch-3",
+            name: "Budi Santoso, M.Pd.",
+            nip: "198811052014021002",
+            subject: "Bahasa Indonesia",
+            className: "Kelas XI-IPA",
+            whatsapp: "6281355566677",
+            username: "budi",
+            password: "123"
+          }
+        ],
+        // Baris/Item Perangkat Ajar yang dikelola bebas oleh Admin
+        adminItems: [
+          { id: "itm-1", order: 1, category: "Perencanaan Pembelajaran", title: "Capaian Pembelajaran (CP) & ATP", description: "Alur Tujuan Pembelajaran lengkap satu tahun ajaran (.pdf / .docx)", required: true },
+          { id: "itm-2", category: "Perencanaan Pembelajaran", order: 2, title: "Modul Ajar / RPP Berdiferensiasi", description: "Modul ajar lengkap beserta lampiran asesmen formatif (.pdf / .docx)", required: true },
+          { id: "itm-3", category: "Perencanaan Pembelajaran", order: 3, title: "Program Tahunan & Program Semester", description: "Prota dan Promes sesuai kalender akademik (.pdf / .docx)", required: true },
+          { id: "itm-4", category: "Pelaksanaan & Bahan Ajar", order: 4, title: "Bahan Ajar / LKPD Siswa", description: "Lembar Kerja Peserta Didik terstruktur (.pdf / .docx)", required: true },
+          { id: "itm-5", category: "Asesmen & Evaluasi", order: 5, title: "Kisi-Kisi & Instrumen Penilaian Sumatif", description: "Kisi-kisi soal, rubrik penilaian, dan pedoman penskoran (.pdf / .docx)", required: true }
+        ],
+        // Data Upload Dokumen Guru
+        submissions: [
+          {
+            id: "sub-1",
+            teacherId: "tch-1",
+            className: "Kelas X-A",
+            itemId: "itm-1",
+            fileName: "CP_ATP_Informatika_XA.pdf",
+            fileType: "application/pdf",
+            fileSize: 248320,
+            fileDataUrl: "",
+            uploadedAt: "2026-11-20T09:15:00.000Z",
+            status: "Diterima",
+            adminNote: "Dokumen lengkap dan sesuai format kurikulum."
+          }
+        ],
+        // Notifikasi / Pesan dari Admin ke Guru
+        notifications: [
+          {
+            id: "ntf-1",
+            teacherId: "tch-1",
+            title: "Perangkat Ajar Diterima",
+            message: "Dokumen CP & ATP Anda telah diverifikasi dan diterima oleh Admin Kurikulum.",
+            type: "success",
+            createdAt: "2026-11-20T09:30:00.000Z",
+            read: false
+          },
+          {
+            id: "ntf-2",
+            teacherId: "tch-2",
+            title: "Pengingat Kelengkapan Administrasi",
+            message: "Mohon segera mengunggah Modul Ajar dan Prota/Promes untuk Kelas X-B sebelum tenggat waktu.",
+            type: "warning",
+            createdAt: "2026-11-21T08:00:00.000Z",
+            read: false
+          }
+        ]
+      };
+
+      // State Aplikasi
+      let db = loadDatabase();
+      let session = null; // { role: 'admin' | 'teacher', user: object }
+      let activeTab = 'overview';
+      let selectedClassFilter = 'ALL';
+
+      function loadDatabase() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_DB));
+            return JSON.parse(JSON.stringify(DEFAULT_DB));
+          }
+          return JSON.parse(raw);
+        } catch (e) {
+          console.error("Gagal memuat database lokal:", e);
+          return JSON.parse(JSON.stringify(DEFAULT_DB));
+        }
+      }
+
+      function saveDatabase() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+        } catch (e) {
+          showToast("Penyimpanan browser penuh. Gunakan file berukuran lebih kecil (< 2 MB).", "error");
+        }
+      }
+
+      // Utilitas Toast (Pengganti alert)
+      function showToast(message, type = "info") {
+        const container = document.getElementById("toast-container");
+        const el = document.createElement("div");
+        const styles = {
+          success: "bg-emerald-600 text-white border-emerald-400",
+          error: "bg-rose-600 text-white border-rose-400",
+          warning: "bg-amber-600 text-white border-amber-400",
+          info: "bg-slate-900 text-white border-orange-400"
+        };
+        el.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-xl border text-sm font-medium flex items-center gap-2.5 transform transition-all duration-300 translate-y-0 opacity-100 ${styles[type] || styles.info}`;
+        el.innerHTML = `<span class="flex-1">${escapeHtml(message)}</span>`;
+        container.appendChild(el);
+        setTimeout(() => {
+          el.classList.add("opacity-0", "translate-x-4");
+          setTimeout(() => el.remove(), 300);
+        }, 3800);
+      }
+
+      function escapeHtml(str) {
+        if (str === null || str === undefined) return "";
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function formatBytes(bytes) {
+        if (!bytes) return "0 KB";
+        const k = 1024;
+        const sizes = ["Bytes", "KB", "MB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+      }
+
+      function formatDate(isoStr) {
+        if (!isoStr) return "-";
+        const d = new Date(isoStr);
+        return d.toLocaleString("id-ID", {
+          day: "2-digit", month: "short", year: "numeric",
+          hour: "2-digit", minute: "2-digit"
+        });
+      }
+
+      // Jam Realtime, Ucapan Selamat & Afirmasi Harian
+      function updateClockAndGreeting() {
+        const now = new Date();
+        const hours = now.getHours();
+        let greeting = "Selamat Malam";
+        if (hours >= 4 && hours < 11) greeting = "Selamat Pagi";
+        else if (hours >= 11 && hours < 15) greeting = "Selamat Siang";
+        else if (hours >= 15 && hours < 18) greeting = "Selamat Sore";
+
+        const userName = session ? session.user.name : "Bapak/Ibu";
+        const greetEl = document.getElementById("greeting-text");
+        if (greetEl) greetEl.textContent = `${greeting}, ${userName}!`;
+
+        const clockEl = document.getElementById("live-clock");
+        if (clockEl) {
+          clockEl.textContent = now.toLocaleTimeString("id-ID", { hour12: false });
+        }
+
+        const dateEl = document.getElementById("live-date");
+        if (dateEl) {
+          dateEl.textContent = now.toLocaleDateString("id-ID", {
+            weekday: "long", day: "numeric", month: "long", year: "numeric"
+          });
+        }
+
+        // Afirmasi berganti otomatis setiap hari
+        const startOfYear = new Date(now.getFullYear(), 0, 0);
+        const dayOfYear = Math.floor((now - startOfYear) / (1000 * 60 * 60 * 24));
+        const aff = AFFIRMATIONS[dayOfYear % AFFIRMATIONS.length];
+        const affEl = document.getElementById("daily-affirmation-text");
+        if (affEl) affEl.textContent = `"${aff}"`;
+
+        // Batas waktu
+        const dlEl = document.getElementById("deadline-label");
+        if (dlEl && db.meta.deadline) {
+          dlEl.textContent = `Batas: ${formatDate(db.meta.deadline)}`;
+        }
+      }
+
+      // Modal Helper
+      function openModal(title, htmlContent) {
+        document.getElementById("modal-title").textContent = title;
+        document.getElementById("modal-body").innerHTML = htmlContent;
+        document.getElementById("modal-backdrop").classList.remove("hidden");
+        lucide.createIcons();
+      }
+
+      function closeModal() {
+        document.getElementById("modal-backdrop").classList.add("hidden");
+        document.getElementById("modal-body").innerHTML = "";
+      }
+
+      // =========================================================
+      // LOGIKA LOGIN & PEMILIHAN PERAN
+      // =========================================================
+      function initLoginEvents() {
+        const roleBtns = document.querySelectorAll(".role-selector-btn");
+        const roleInput = document.getElementById("login-role");
+
+        roleBtns.forEach(btn => {
+          btn.addEventListener("click", () => {
+            const selected = btn.dataset.role;
+            roleInput.value = selected;
+            roleBtns.forEach(b => {
+              if (b.dataset.role === selected) {
+                b.className = "role-selector-btn py-2.5 px-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition bg-white text-orange-600 shadow-sm";
+              } else {
+                b.className = "role-selector-btn py-2.5 px-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition text-slate-500 hover:text-orange-600";
+              }
+            });
+          });
+        });
+
+        document.getElementById("toggle-password").addEventListener("click", () => {
+          const pwd = document.getElementById("login-password");
+          pwd.type = pwd.type === "password" ? "text" : "password";
+        });
+
+        document.getElementById("login-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const username = document.getElementById("login-username").value.trim();
+          const password = document.getElementById("login-password").value.trim();
+          const role = roleInput.value;
+
+          if (role === "admin") {
+            if (username === db.admin.username && password === db.admin.password) {
+              session = { role: "admin", user: db.admin };
+              enterApp();
+            } else {
+              showToast("Username atau password Admin tidak sesuai.", "error");
+            }
+          } else {
+            const teacher = db.teachers.find(t => t.username === username && t.password === password);
+            if (teacher) {
+              session = { role: "teacher", user: teacher };
+              enterApp();
+            } else {
+              showToast("Username atau password Guru tidak ditemukan.", "error");
+            }
+          }
+        });
+      }
+
+      function enterApp() {
+        document.getElementById("login-view").classList.add("hidden");
+        document.getElementById("app-view").classList.remove("hidden");
+        activeTab = session.role === "admin" ? "admin-overview" : "teacher-upload";
+        renderSidebar();
+        renderHeaderInfo();
+        updateClockAndGreeting();
+        renderActiveWorkspace();
+        showToast(`Berhasil masuk sebagai ${session.user.name}`, "success");
+      }
+
+      function logout() {
+        session = null;
+        document.getElementById("login-form").reset();
+        document.getElementById("app-view").classList.add("hidden");
+        document.getElementById("login-view").classList.remove("hidden");
+      }
+
+      // =========================================================
+      // SIDEBAR & HEADER
+      // =========================================================
+      function renderSidebar() {
+        const isAdmin = session.role === "admin";
+        document.getElementById("sidebar-role-badge").textContent = isAdmin ? "Administrator" : "Portal Guru";
+        document.getElementById("sidebar-user-name").textContent = session.user.name;
+        document.getElementById("sidebar-user-sub").textContent = isAdmin ? db.meta.schoolName : `${session.user.className} • ${session.user.subject}`;
+
+        const initials = session.user.name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
+        document.getElementById("user-avatar-initials").textContent = initials || "US";
+
+        const menus = isAdmin ? [
+          { id: "admin-overview", label: "Ringkasan & Rekap Kelas", icon: "layout-dashboard" },
+          { id: "admin-submissions", label: "Verifikasi Dokumen", icon: "file-check-2" },
+          { id: "admin-items", label: "Kelola Form & Kategori", icon: "list-ordered" },
+          { id: "admin-teachers", label: "Akun Guru & Generator", icon: "users" },
+          { id: "admin-whatsapp", label: "Pengingat WhatsApp", icon: "message-circle" },
+          { id: "admin-github", label: "Database & GitHub Sync", icon: "github" },
+          { id: "admin-settings", label: "Pengumuman & Pengaturan", icon: "settings" }
+        ] : [
+          { id: "teacher-upload", label: "Upload Perangkat Ajar", icon: "upload-cloud" },
+          { id: "teacher-notifications", label: "Notifikasi & Pesan Admin", icon: "bell" },
+          { id: "teacher-profile", label: "Profil & Kelas Saya", icon: "user-check" }
+        ];
+
+        const nav = document.getElementById("sidebar-nav");
+        nav.innerHTML = menus.map(m => {
+          const isActive = activeTab === m.id;
+          return `
+            <button
+              data-tab="${m.id}"
+              class="nav-item-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition ${
+                isActive
+                  ? "bg-white text-orange-600 shadow-lg shadow-orange-950/15"
+                  : "text-orange-50 hover:bg-white/15"
+              }"
+            >
+              <i data-lucide="${m.icon}" class="w-4 h-4 shrink-0"></i>
+              <span class="truncate">${m.label}</span>
+            </button>
+          `;
+        }).join("");
+
+        nav.querySelectorAll(".nav-item-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            activeTab = btn.dataset.tab;
+            renderSidebar();
+            renderActiveWorkspace();
+            closeMobileSidebar();
+          });
+        });
+
+        lucide.createIcons();
+      }
+
+      function renderHeaderInfo() {
+        document.getElementById("announcement-marquee").textContent = db.meta.announcement;
+        updateNotificationBadge();
+      }
+
+      function updateNotificationBadge() {
+        const badge = document.getElementById("notif-badge");
+        if (!session) return;
+        let unreadCount = 0;
+        if (session.role === "teacher") {
+          unreadCount = db.notifications.filter(n => n.teacherId === session.user.id && !n.read).length;
+        } else {
+          unreadCount = db.submissions.filter(s => s.status === "Menunggu Verifikasi").length;
+        }
+        if (unreadCount > 0) {
+          badge.textContent = unreadCount;
+          badge.classList.remove("hidden");
+        } else {
+          badge.classList.add("hidden");
+        }
+      }
+
+      function closeMobileSidebar() {
+        document.getElementById("sidebar").classList.add("-translate-x-full");
+        document.getElementById("sidebar-backdrop").classList.add("hidden");
+      }
+
+      // =========================================================
+      // ROUTER KONTEN UTAMA
+      // =========================================================
+      function renderActiveWorkspace() {
+        const container = document.getElementById("workspace-content");
+        if (session.role === "teacher") {
+          if (activeTab === "teacher-upload") renderTeacherUploadView(container);
+          else if (activeTab === "teacher-notifications") renderTeacherNotificationsView(container);
+          else renderTeacherProfileView(container);
+        } else {
+          if (activeTab === "admin-overview") renderAdminOverview(container);
+          else if (activeTab === "admin-submissions") renderAdminSubmissions(container);
+          else if (activeTab === "admin-items") renderAdminItemsManager(container);
+          else if (activeTab === "admin-teachers") renderAdminTeachersManager(container);
+          else if (activeTab === "admin-whatsapp") renderAdminWhatsappManager(container);
+          else if (activeTab === "admin-github") renderAdminGithubSync(container);
+          else renderAdminSettings(container);
+        }
+        updateNotificationBadge();
+        lucide.createIcons();
+      }
+
+      // =========================================================
+      // PORTAL GURU: UPLOAD PERANGKAT AJAR (.DOCX / .PDF) PER KELAS
+      // =========================================================
+      function renderTeacherUploadView(container) {
+        const teacher = session.user;
+        const sortedItems = [...db.adminItems].sort((a, b) => a.order - b.order);
+        const mySubmissions = db.submissions.filter(s => s.teacherId === teacher.id);
+
+        const totalRequired = sortedItems.filter(i => i.required).length;
+        const completedCount = sortedItems.filter(i => mySubmissions.some(s => s.itemId === i.id)).length;
+        const acceptedCount = sortedItems.filter(i => mySubmissions.some(s => s.itemId === i.id && s.status === "Diterima")).length;
+        const progressPct = totalRequired > 0 ? Math.round((completedCount / totalRequired) * 100) : 0;
+
+        // Kelompokkan per kategori
+        const categories = [...new Set([...db.categories, ...sortedItems.map(i => i.category)])];
+
+        container.innerHTML = `
+          <!-- Statistik Progres Guru -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="glass-card rounded-2xl p-5 flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Kelas Ampuan</p>
+                <p class="font-display text-2xl font-extrabold text-slate-900 mt-1">${escapeHtml(teacher.className)}</p>
+                <p class="text-xs text-orange-600 font-medium mt-0.5">${escapeHtml(teacher.subject)}</p>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center">
+                <i data-lucide="school" class="w-6 h-6"></i>
+              </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-5 flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Progres Unggahan</p>
+                <p class="font-display text-2xl font-extrabold text-slate-900 mt-1">${completedCount} / ${sortedItems.length} Dokumen</p>
+                <div class="w-36 h-2 bg-orange-100 rounded-full mt-2 overflow-hidden">
+                  <div class="h-full bg-orange-500 rounded-full" style="width: ${progressPct}%"></div>
+                </div>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center font-display font-extrabold text-sm">
+                ${progressPct}%
+              </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-5 flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Status Diterima Admin</p>
+                <p class="font-display text-2xl font-extrabold text-emerald-600 mt-1">${acceptedCount} Disetujui</p>
+                <p class="text-xs text-slate-500 mt-0.5">Format wajib: .PDF / .DOCX</p>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Daftar Perangkat Ajar per Kategori -->
+          <div class="space-y-5">
+            ${categories.map(cat => {
+              const catItems = sortedItems.filter(i => i.category === cat);
+              if (catItems.length === 0) return "";
+              return `
+                <div class="glass-card rounded-3xl overflow-hidden">
+                  <div class="px-6 py-4 bg-orange-50/90 border-b border-orange-200/60 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                      <span class="w-2.5 h-6 rounded-full bg-orange-500"></span>
+                      <h3 class="font-display font-bold text-base sm:text-lg text-slate-900">${escapeHtml(cat)}</h3>
+                    </div>
+                    <span class="text-xs font-semibold px-3 py-1 rounded-full bg-orange-100 text-orange-700">${catItems.length} Item</span>
+                  </div>
+
+                  <div class="divide-y divide-orange-100">
+                    ${catItems.map(item => {
+                      const sub = mySubmissions.find(s => s.itemId === item.id);
+                      let statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">Belum Diunggah</span>`;
+                      if (sub) {
+                        if (sub.status === "Diterima") statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Diterima Admin</span>`;
+                        else if (sub.status === "Revisi") statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">Perlu Revisi</span>`;
+                        else statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Menunggu Verifikasi</span>`;
+                      }
+
+                      return `
+                        <div class="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-orange-50/30 transition">
+                          <div class="space-y-1.5 max-w-2xl">
+                            <div class="flex flex-wrap items-center gap-2">
+                              <span class="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-lg">#${item.order}</span>
+                              <h4 class="font-bold text-slate-900 text-base">${escapeHtml(item.title)}</h4>
+                              ${statusBadge}
+                            </div>
+                            <p class="text-xs sm:text-sm text-slate-600">${escapeHtml(item.description)}</p>
+
+                            ${sub ? `
+                              <div class="mt-2 p-3 rounded-2xl bg-white border border-orange-200/70 flex flex-wrap items-center justify-between gap-2 text-xs">
+                                <div class="flex items-center gap-2 min-w-0">
+                                  <i data-lucide="file-text" class="w-4 h-4 text-orange-500 shrink-0"></i>
+                                  <span class="font-semibold text-slate-800 truncate">${escapeHtml(sub.fileName)}</span>
+                                  <span class="text-slate-400">(${formatBytes(sub.fileSize)} • ${formatDate(sub.uploadedAt)})</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                  <button type="button" data-preview-sub="${sub.id}" class="px-2.5 py-1 rounded-lg bg-orange-100 text-orange-700 font-semibold hover:bg-orange-200 transition">Lihat File</button>
+                                </div>
+                              </div>
+                              ${sub.adminNote ? `
+                                <p class="text-xs text-slate-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-1.5">
+                                  <strong>Catatan Admin:</strong> ${escapeHtml(sub.adminNote)}
+                                </p>
+                              ` : ""}
+                            ` : ""}
+                          </div>
+
+                          <!-- Kontrol Upload File .PDF / .DOCX -->
+                          <div class="shrink-0 flex items-center gap-2">
+                            <label class="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xs sm:text-sm font-semibold shadow-md shadow-orange-500/20 transition">
+                              <i data-lucide="upload" class="w-4 h-4"></i>
+                              <span>${sub ? "Ganti File (.pdf/.docx)" : "Upload File (.pdf/.docx)"}</span>
+                              <input
+                                type="file"
+                                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                data-upload-item="${item.id}"
+                                class="hidden teacher-file-input"
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      `;
+                    }).join("")}
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+
+        // Event Upload File (.pdf / .docx)
+        container.querySelectorAll(".teacher-file-input").forEach(input => {
+          input.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const itemId = input.dataset.uploadItem;
+            handleTeacherFileUpload(itemId, file);
+          });
+        });
+
+        // Event Preview File
+        container.querySelectorAll("[data-preview-sub]").forEach(btn => {
+          btn.addEventListener("click", () => openSubmissionPreview(btn.dataset.previewSub));
+        });
+      }
+
+      function handleTeacherFileUpload(itemId, file) {
+        const fileName = file.name;
+        const ext = fileName.split(".").pop().toLowerCase();
+        if (ext !== "pdf" && ext !== "docx") {
+          showToast("Format file ditolak! Hanya menerima file .PDF atau .DOCX.", "error");
+          return;
+        }
+        if (file.size > 3 * 1024 * 1024) {
+          showToast("Ukuran file maksimal 3 MB agar sinkronisasi GitHub tetap optimal.", "warning");
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          const dataUrl = ev.target.result;
+          const existingIdx = db.submissions.findIndex(
+            s => s.teacherId === session.user.id && s.itemId === itemId
+          );
+
+          const payload = {
+            id: existingIdx >= 0 ? db.submissions[existingIdx].id : "sub-" + Date.now(),
+            teacherId: session.user.id,
+            className: session.user.className,
+            itemId,
+            fileName: file.name,
+            fileType: file.type || (ext === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+            fileSize: file.size,
+            fileDataUrl: dataUrl,
+            uploadedAt: new Date().toISOString(),
+            status: "Menunggu Verifikasi",
+            adminNote: ""
+          };
+
+          if (existingIdx >= 0) db.submissions[existingIdx] = payload;
+          else db.submissions.push(payload);
+
+          saveDatabase();
+          renderActiveWorkspace();
+          showToast(`File "${file.name}" berhasil diunggah untuk ${session.user.className}.`, "success");
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // =========================================================
+      // PORTAL GURU: NOTIFIKASI & PESAN DARI ADMIN
+      // =========================================================
+      function renderTeacherNotificationsView(container) {
+        const myNotifs = db.notifications
+          .filter(n => n.teacherId === session.user.id)
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        container.innerHTML = `
+          <div class="glass-card rounded-3xl p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-orange-100">
+              <div>
+                <h3 class="font-display text-xl font-bold text-slate-900">Notifikasi & Pesan Admin</h3>
+                <p class="text-xs sm:text-sm text-slate-500">Pemberitahuan penerimaan perangkat ajar maupun catatan kelengkapan administrasi.</p>
+              </div>
+              <button id="mark-all-read-btn" class="px-4 py-2 rounded-xl bg-orange-100 text-orange-700 text-xs font-semibold hover:bg-orange-200 transition">
+                Tandai Semua Sudah Dibaca
+              </button>
+            </div>
+
+            ${myNotifs.length === 0 ? `
+              <div class="text-center py-12 text-slate-400">
+                <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-2 opacity-60"></i>
+                <p class="text-sm">Belum ada notifikasi atau pesan untuk Anda.</p>
+              </div>
+            ` : `
+              <div class="space-y-3">
+                ${myNotifs.map(n => {
+                  const badgeStyle = n.type === "success"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-amber-100 text-amber-800";
+                  return `
+                    <div class="p-4 rounded-2xl border ${n.read ? "bg-white/70 border-slate-200" : "bg-orange-50/90 border-orange-300 shadow-xs"} flex items-start justify-between gap-4">
+                      <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${badgeStyle}">
+                            ${n.type === "success" ? "Diterima" : "Info / Revisi"}
+                          </span>
+                          <h4 class="font-bold text-slate-900 text-sm">${escapeHtml(n.title)}</h4>
+                          ${!n.read ? `<span class="w-2 h-2 rounded-full bg-orange-500"></span>` : ""}
+                        </div>
+                        <p class="text-sm text-slate-700">${escapeHtml(n.message)}</p>
+                        <p class="text-[11px] text-slate-400">${formatDate(n.createdAt)}</p>
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            `}
+          </div>
+        `;
+
+        document.getElementById("mark-all-read-btn")?.addEventListener("click", () => {
+          db.notifications.forEach(n => {
+            if (n.teacherId === session.user.id) n.read = true;
+          });
+          saveDatabase();
+          renderActiveWorkspace();
+          showToast("Semua notifikasi ditandai telah dibaca.", "info");
+        });
+      }
+
+      // =========================================================
+      // PORTAL GURU: PROFIL & KELAS
+      // =========================================================
+      function renderTeacherProfileView(container) {
+        const t = session.user;
+        container.innerHTML = `
+          <div class="glass-card rounded-3xl p-6 max-w-2xl">
+            <h3 class="font-display text-xl font-bold text-slate-900 mb-4">Identitas & Penugasan Kelas</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <div class="p-4 rounded-2xl bg-orange-50/70 border border-orange-100">
+                <span class="text-xs text-slate-500 block">Nama Lengkap</span>
+                <strong class="text-slate-900">${escapeHtml(t.name)}</strong>
+              </div>
+              <div class="p-4 rounded-2xl bg-orange-50/70 border border-orange-100">
+                <span class="text-xs text-slate-500 block">NIP / NUPTK</span>
+                <strong class="text-slate-900">${escapeHtml(t.nip || "-")}</strong>
+              </div>
+              <div class="p-4 rounded-2xl bg-orange-50/70 border border-orange-100">
+                <span class="text-xs text-slate-500 block">Kelas Ampuan</span>
+                <strong class="text-orange-600">${escapeHtml(t.className)}</strong>
+              </div>
+              <div class="p-4 rounded-2xl bg-orange-50/70 border border-orange-100">
+                <span class="text-xs text-slate-500 block">Mata Pelajaran</span>
+                <strong class="text-slate-900">${escapeHtml(t.subject)}</strong>
+              </div>
+              <div class="p-4 rounded-2xl bg-orange-50/70 border border-orange-100">
+                <span class="text-xs text-slate-500 block">Nomor WhatsApp</span>
+                <strong class="text-slate-900">+${escapeHtml(t.whatsapp)}</strong>
+              </div>
+              <div class="p-4 rounded-2xl bg-orange-50/70 border border-orange-100">
+                <span class="text-xs text-slate-500 block">Username Login</span>
+                <strong class="text-slate-900">${escapeHtml(t.username)}</strong>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // =========================================================
+      // DASHBOARD ADMIN: RINGKASAN & REKAP PER KELAS
+      // =========================================================
+      function renderAdminOverview(container) {
+        const totalTeachers = db.teachers.length;
+        const totalItems = db.adminItems.length;
+        const totalExpected = totalTeachers * totalItems;
+        const totalSubmitted = db.submissions.length;
+        const totalAccepted = db.submissions.filter(s => s.status === "Diterima").length;
+
+        const classes = [...new Set([...db.classes, ...db.teachers.map(t => t.className)])];
+
+        container.innerHTML = `
+          <!-- Kartu Statistik -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="glass-card rounded-2xl p-5">
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Akun Guru</p>
+              <p class="font-display text-3xl font-extrabold text-slate-900 mt-1">${totalTeachers}</p>
+              <p class="text-xs text-orange-600 mt-1">Tersebar di ${classes.length} kelas</p>
+            </div>
+            <div class="glass-card rounded-2xl p-5">
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Item Perangkat Ajar</p>
+              <p class="font-display text-3xl font-extrabold text-slate-900 mt-1">${totalItems}</p>
+              <p class="text-xs text-slate-500 mt-1">${db.categories.length} kategori aktif</p>
+            </div>
+            <div class="glass-card rounded-2xl p-5">
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Dokumen Masuk</p>
+              <p class="font-display text-3xl font-extrabold text-orange-600 mt-1">${totalSubmitted} / ${totalExpected}</p>
+              <p class="text-xs text-slate-500 mt-1">Format .PDF & .DOCX</p>
+            </div>
+            <div class="glass-card rounded-2xl p-5">
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Telah Diterima</p>
+              <p class="font-display text-3xl font-extrabold text-emerald-600 mt-1">${totalAccepted}</p>
+              <p class="text-xs text-slate-500 mt-1">Terverifikasi Admin</p>
+            </div>
+          </div>
+
+          <!-- Rekap Pengumpulan Tersusun Rapi Per Kelas -->
+          <div class="glass-card rounded-3xl p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div>
+                <h3 class="font-display text-xl font-bold text-slate-900">Rekap Kelengkapan Perangkat Ajar Per Kelas</h3>
+                <p class="text-xs sm:text-sm text-slate-500">Pantau progres setiap guru berdasarkan kelas dan kirim pengingat cepat.</p>
+              </div>
+              <select id="overview-class-filter" class="px-4 py-2 rounded-xl bg-white border border-orange-200 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <option value="ALL">Semua Kelas</option>
+                ${classes.map(c => `<option value="${escapeHtml(c)}" ${selectedClassFilter === c ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}
+              </select>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr class="border-b border-orange-200/70 text-xs uppercase tracking-wider text-slate-500 bg-orange-50/70">
+                    <th class="py-3.5 px-4 rounded-tl-xl">Kelas</th>
+                    <th class="py-3.5 px-4">Nama Guru & Mapel</th>
+                    <th class="py-3.5 px-4">Kelengkapan</th>
+                    <th class="py-3.5 px-4">Status</th>
+                    <th class="py-3.5 px-4 rounded-tr-xl text-right">Aksi Cepat</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-orange-100">
+                  ${db.teachers
+                    .filter(t => selectedClassFilter === "ALL" || t.className === selectedClassFilter)
+                    .map(t => {
+                      const uploaded = db.submissions.filter(s => s.teacherId === t.id).length;
+                      const accepted = db.submissions.filter(s => s.teacherId === t.id && s.status === "Diterima").length;
+                      const isComplete = totalItems > 0 && uploaded >= totalItems;
+                      return `
+                        <tr class="hover:bg-orange-50/40 transition">
+                          <td class="py-3.5 px-4 font-bold text-orange-700">${escapeHtml(t.className)}</td>
+                          <td class="py-3.5 px-4">
+                            <div class="font-semibold text-slate-900">${escapeHtml(t.name)}</div>
+                            <div class="text-xs text-slate-500">${escapeHtml(t.subject)}</div>
+                          </td>
+                          <td class="py-3.5 px-4">
+                            <span class="font-bold text-slate-800">${uploaded}/${totalItems}</span>
+                            <span class="text-xs text-emerald-600 ml-1">(${accepted} diterima)</span>
+                          </td>
+                          <td class="py-3.5 px-4">
+                            ${isComplete
+                              ? `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Lengkap</span>`
+                              : `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Belum Lengkap</span>`
+                            }
+                          </td>
+                          <td class="py-3.5 px-4 text-right space-x-1.5">
+                            <button data-msg-teacher="${t.id}" class="px-3 py-1.5 rounded-xl bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs font-semibold transition">
+                              Kirim Pesan
+                            </button>
+                            ${!isComplete ? `
+                              <button data-wa-teacher="${t.id}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition">
+                                WhatsApp
+                              </button>
+                            ` : ""}
+                          </td>
+                        </tr>
+                      `;
+                    }).join("")}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+
+        document.getElementById("overview-class-filter")?.addEventListener("change", (e) => {
+          selectedClassFilter = e.target.value;
+          renderActiveWorkspace();
+        });
+
+        container.querySelectorAll("[data-msg-teacher]").forEach(btn => {
+          btn.addEventListener("click", () => openSendMessageModal(btn.dataset.msgTeacher));
+        });
+
+        container.querySelectorAll("[data-wa-teacher]").forEach(btn => {
+          btn.addEventListener("click", () => triggerWhatsappReminder(btn.dataset.waTeacher));
+        });
+      }
+
+      // =========================================================
+      // DASHBOARD ADMIN: VERIFIKASI & LIHAT FILE UPLOAD GURU
+      // =========================================================
+      function renderAdminSubmissions(container) {
+        const classes = [...new Set([...db.classes, ...db.teachers.map(t => t.className)])];
+        const filteredSubs = db.submissions.filter(s => selectedClassFilter === "ALL" || s.className === selectedClassFilter);
+
+        container.innerHTML = `
+          <div class="glass-card rounded-3xl p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div>
+                <h3 class="font-display text-xl font-bold text-slate-900">Verifikasi Dokumen Perangkat Ajar</h3>
+                <p class="text-xs sm:text-sm text-slate-500">Pratinjau file .PDF / .DOCX unggahan guru, terima dokumen, atau kirim catatan revisi.</p>
+              </div>
+              <select id="sub-class-filter" class="px-4 py-2 rounded-xl bg-white border border-orange-200 text-sm font-semibold text-slate-700">
+                <option value="ALL">Semua Kelas</option>
+                ${classes.map(c => `<option value="${escapeHtml(c)}" ${selectedClassFilter === c ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}
+              </select>
+            </div>
+
+            ${filteredSubs.length === 0 ? `
+              <div class="text-center py-12 text-slate-400">
+                <p class="text-sm">Belum ada dokumen perangkat ajar yang diunggah pada filter kelas ini.</p>
+              </div>
+            ` : `
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr class="border-b border-orange-200 text-xs uppercase tracking-wider text-slate-500 bg-orange-50/70">
+                      <th class="py-3 px-4">Kelas & Guru</th>
+                      <th class="py-3 px-4">Item Administrasi</th>
+                      <th class="py-3 px-4">File (.PDF / .DOCX)</th>
+                      <th class="py-3 px-4">Status</th>
+                      <th class="py-3 px-4 text-right">Kelola</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-orange-100">
+                    ${filteredSubs.map(sub => {
+                      const teacher = db.teachers.find(t => t.id === sub.teacherId) || { name: "Guru", className: sub.className };
+                      const item = db.adminItems.find(i => i.id === sub.itemId) || { title: "Item Administrasi" };
+                      return `
+                        <tr class="hover:bg-orange-50/40">
+                          <td class="py-3.5 px-4">
+                            <span class="text-xs font-bold text-orange-600 block">${escapeHtml(sub.className)}</span>
+                            <span class="font-semibold text-slate-900">${escapeHtml(teacher.name)}</span>
+                          </td>
+                          <td class="py-3.5 px-4 font-medium text-slate-800">${escapeHtml(item.title)}</td>
+                          <td class="py-3.5 px-4">
+                            <div class="font-semibold text-slate-800 truncate max-w-[200px]">${escapeHtml(sub.fileName)}</div>
+                            <div class="text-[11px] text-slate-400">${formatBytes(sub.fileSize)} • ${formatDate(sub.uploadedAt)}</div>
+                          </td>
+                          <td class="py-3.5 px-4">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${
+                              sub.status === "Diterima" ? "bg-emerald-100 text-emerald-700" :
+                              sub.status === "Revisi" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-800"
+                            }">${escapeHtml(sub.status)}</span>
+                          </td>
+                          <td class="py-3.5 px-4 text-right space-x-1">
+                            <button data-preview-sub="${sub.id}" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">Lihat</button>
+                            <button data-accept-sub="${sub.id}" class="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">Terima</button>
+                            <button data-revise-sub="${sub.id}" class="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold">Revisi</button>
+                            <button data-del-sub="${sub.id}" class="px-2.5 py-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-semibold">Hapus</button>
+                          </td>
+                        </tr>
+                      `;
+                    }).join("")}
+                  </tbody>
+                </table>
+              </div>
+            `}
+          </div>
+        `;
+
+        document.getElementById("sub-class-filter")?.addEventListener("change", (e) => {
+          selectedClassFilter = e.target.value;
+          renderActiveWorkspace();
+        });
+
+        container.querySelectorAll("[data-preview-sub]").forEach(b => b.addEventListener("click", () => openSubmissionPreview(b.dataset.previewSub)));
+        container.querySelectorAll("[data-accept-sub]").forEach(b => b.addEventListener("click", () => verifySubmission(b.dataset.acceptSub, "Diterima")));
+        container.querySelectorAll("[data-revise-sub]").forEach(b => b.addEventListener("click", () => openRevisionModal(b.dataset.reviseSub)));
+        container.querySelectorAll("[data-del-sub]").forEach(b => b.addEventListener("click", () => {
+          db.submissions = db.submissions.filter(s => s.id !== b.dataset.delSub);
+          saveDatabase();
+          renderActiveWorkspace();
+          showToast("Dokumen unggahan berhasil dihapus.", "info");
+        }));
+      }
+
+      function verifySubmission(subId, status, customNote = "") {
+        const sub = db.submissions.find(s => s.id === subId);
+        if (!sub) return;
+        const item = db.adminItems.find(i => i.id === sub.itemId) || { title: "Perangkat Ajar" };
+        sub.status = status;
+        sub.adminNote = customNote || (status === "Diterima" ? "Dokumen telah diperiksa dan diterima." : "Mohon perbaiki sesuai catatan admin.");
+
+        // Kirim notifikasi otomatis ke akun guru
+        db.notifications.push({
+          id: "ntf-" + Date.now(),
+          teacherId: sub.teacherId,
+          title: status === "Diterima" ? `Dokumen Diterima: ${item.title}` : `Revisi Diperlukan: ${item.title}`,
+          message: sub.adminNote,
+          type: status === "Diterima" ? "success" : "warning",
+          createdAt: new Date().toISOString(),
+          read: false
+        });
+
+        saveDatabase();
+        renderActiveWorkspace();
+        showToast(`Status dokumen diperbarui menjadi "${status}" & notifikasi terkirim ke guru.`, "success");
+      }
+
+      function openRevisionModal(subId) {
+        const sub = db.submissions.find(s => s.id === subId);
+        if (!sub) return;
+        openModal("Kirim Catatan Revisi ke Guru", `
+          <form id="revision-form" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Catatan Perbaikan / Kekurangan Administrasi</label>
+              <textarea id="revision-note" rows="4" required class="w-full p-3.5 rounded-2xl border border-orange-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Tuliskan bagian yang perlu dilengkapi oleh guru..."></textarea>
+            </div>
+            <div class="flex justify-end gap-2">
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-orange-600 text-white text-sm font-semibold hover:bg-orange-700">Kirim Catatan Revisi</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("revision-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const note = document.getElementById("revision-note").value.trim();
+          closeModal();
+          verifySubmission(subId, "Revisi", note);
+        });
+      }
+
+      function openSubmissionPreview(subId) {
+        const sub = db.submissions.find(s => s.id === subId);
+        if (!sub) return;
+        const isPdf = sub.fileName.toLowerCase().endsWith(".pdf");
+        openModal(`Pratinjau Dokumen: ${sub.fileName}`, `
+          <div class="space-y-4">
+            <div class="p-3.5 rounded-2xl bg-orange-50 border border-orange-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div>
+                <p class="font-bold text-slate-900">${escapeHtml(sub.fileName)}</p>
+                <p class="text-slate-500">Ukuran: ${formatBytes(sub.fileSize)} • Diunggah: ${formatDate(sub.uploadedAt)}</p>
+              </div>
+              ${sub.fileDataUrl ? `
+                <a href="${sub.fileDataUrl}" download="${escapeHtml(sub.fileName)}" class="px-4 py-2 rounded-xl bg-orange-600 text-white font-semibold hover:bg-orange-700 transition">
+                  Unduh File Asli
+                </a>
+              ` : ""}
+            </div>
+
+            ${sub.fileDataUrl && isPdf ? `
+              <iframe src="${sub.fileDataUrl}" class="w-full h-96 rounded-2xl border border-slate-200"></iframe>
+            ` : `
+              <div class="p-8 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-2">
+                <i data-lucide="file-text" class="w-12 h-12 text-orange-500 mx-auto"></i>
+                <p class="font-semibold text-slate-800">${escapeHtml(sub.fileName)}</p>
+                <p class="text-xs text-slate-500">
+                  ${sub.fileDataUrl
+                    ? "Dokumen berformat .DOCX siap diunduh melalui tombol Unduh File Asli di atas."
+                    : "Ini adalah data sampel awal. Unggah file .PDF atau .DOCX untuk melihat pratinjau langsung."}
+                </p>
+              </div>
+            `}
+          </div>
+        `);
+      }
+
+      // =========================================================
+      // DASHBOARD ADMIN: KELOLA BARIS FORM ADM, GESER URUTAN & KATEGORI
+      // =========================================================
+      function renderAdminItemsManager(container) {
+        const sortedItems = [...db.adminItems].sort((a, b) => a.order - b.order);
+
+        container.innerHTML = `
+          <!-- Kelola Kategori -->
+          <div class="glass-card rounded-3xl p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div>
+                <h3 class="font-display text-lg font-bold text-slate-900">Kategori Perangkat Ajar</h3>
+                <p class="text-xs text-slate-500">Tambah atau hapus kelompok kategori administrasi guru.</p>
+              </div>
+              <form id="add-category-form" class="flex gap-2">
+                <input type="text" id="new-category-name" required placeholder="Nama kategori baru..." class="px-3.5 py-2 rounded-xl bg-white border border-orange-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
+                <button type="submit" class="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs sm:text-sm font-semibold hover:bg-orange-700">+ Kategori</button>
+              </form>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              ${db.categories.map((cat, idx) => `
+                <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-orange-100/80 text-orange-800 text-xs font-semibold">
+                  ${escapeHtml(cat)}
+                  <button type="button" data-del-cat="${idx}" class="text-orange-600 hover:text-rose-600 font-bold" title="Hapus kategori">&times;</button>
+                </span>
+              `).join("")}
+            </div>
+          </div>
+
+          <!-- Kelola Baris Item Administrasi (Tambah, Geser Naik/Turun, Edit, Hapus) -->
+          <div class="glass-card rounded-3xl p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div>
+                <h3 class="font-display text-xl font-bold text-slate-900">Kelola Baris Form Administrasi Guru</h3>
+                <p class="text-xs sm:text-sm text-slate-500">Tambah baris baru, geser urutan tampil, edit judul/deskripsi, atau hapus item.</p>
+              </div>
+              <button id="open-add-item-btn" class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs sm:text-sm font-semibold shadow-md shadow-orange-500/20 flex items-center gap-2">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Tambah Baris Baru</span>
+              </button>
+            </div>
+
+            <div class="space-y-2.5">
+              ${sortedItems.map((item, idx) => `
+                <div class="p-4 rounded-2xl bg-white/90 border border-orange-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div class="flex items-start gap-3">
+                    <!-- Tombol Geser Baris -->
+                    <div class="flex flex-col gap-1 shrink-0">
+                      <button data-move-up="${item.id}" ${idx === 0 ? "disabled" : ""} class="p-1 rounded-lg bg-orange-100 text-orange-700 disabled:opacity-30 hover:bg-orange-200" title="Geser Naik">
+                        <i data-lucide="chevron-up" class="w-4 h-4"></i>
+                      </button>
+                      <button data-move-down="${item.id}" ${idx === sortedItems.length - 1 ? "disabled" : ""} class="p-1 rounded-lg bg-orange-100 text-orange-700 disabled:opacity-30 hover:bg-orange-200" title="Geser Turun">
+                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+
+                    <div>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-xs font-extrabold text-orange-600">#${idx + 1}</span>
+                        <span class="px-2.5 py-0.5 rounded-lg bg-orange-50 border border-orange-200 text-[11px] font-semibold text-orange-700">${escapeHtml(item.category)}</span>
+                        <h4 class="font-bold text-slate-900 text-sm sm:text-base">${escapeHtml(item.title)}</h4>
+                      </div>
+                      <p class="text-xs text-slate-500 mt-1">${escapeHtml(item.description)}</p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+                    <button data-edit-item="${item.id}" class="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-800 hover:bg-amber-200 text-xs font-semibold">Edit</button>
+                    <button data-del-item="${item.id}" class="px-3 py-1.5 rounded-xl bg-rose-100 text-rose-700 hover:bg-rose-200 text-xs font-semibold">Hapus</button>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+
+        // Tambah Kategori
+        document.getElementById("add-category-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const val = document.getElementById("new-category-name").value.trim();
+          if (val && !db.categories.includes(val)) {
+            db.categories.push(val);
+            saveDatabase();
+            renderActiveWorkspace();
+            showToast("Kategori baru ditambahkan.", "success");
+          }
+        });
+
+        container.querySelectorAll("[data-del-cat]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = parseInt(btn.dataset.delCat, 10);
+            db.categories.splice(idx, 1);
+            saveDatabase();
+            renderActiveWorkspace();
+          });
+        });
+
+        // Geser Baris Naik / Turun
+        container.querySelectorAll("[data-move-up]").forEach(btn => {
+          btn.addEventListener("click", () => reorderAdminItem(btn.dataset.moveUp, -1));
+        });
+        container.querySelectorAll("[data-move-down]").forEach(btn => {
+          btn.addEventListener("click", () => reorderAdminItem(btn.dataset.moveDown, 1));
+        });
+
+        // Tambah / Edit / Hapus Item
+        document.getElementById("open-add-item-btn").addEventListener("click", () => openAdminItemFormModal(null));
+        container.querySelectorAll("[data-edit-item]").forEach(btn => {
+          btn.addEventListener("click", () => openAdminItemFormModal(btn.dataset.editItem));
+        });
+        container.querySelectorAll("[data-del-item]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            db.adminItems = db.adminItems.filter(i => i.id !== btn.dataset.delItem);
+            normalizeItemOrders();
+            saveDatabase();
+            renderActiveWorkspace();
+            showToast("Baris administrasi berhasil dihapus.", "info");
+          });
+        });
+      }
+
+      function reorderAdminItem(itemId, direction) {
+        const sorted = [...db.adminItems].sort((a, b) => a.order - b.order);
+        const idx = sorted.findIndex(i => i.id === itemId);
+        const targetIdx = idx + direction;
+        if (idx < 0 || targetIdx < 0 || targetIdx >= sorted.length) return;
+        const temp = sorted[idx];
+        sorted[idx] = sorted[targetIdx];
+        sorted[targetIdx] = temp;
+        sorted.forEach((item, index) => { item.order = index + 1; });
+        db.adminItems = sorted;
+        saveDatabase();
+        renderActiveWorkspace();
+      }
+
+      function normalizeItemOrders() {
+        db.adminItems.sort((a, b) => a.order - b.order).forEach((item, idx) => { item.order = idx + 1; });
+      }
+
+      function openAdminItemFormModal(itemId) {
+        const existing = itemId ? db.adminItems.find(i => i.id === itemId) : null;
+        openModal(existing ? "Edit Baris Perangkat Ajar" : "Tambah Baris Perangkat Ajar", `
+          <form id="item-modal-form" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Kategori</label>
+              <select id="item-cat" class="w-full p-3 rounded-xl border border-orange-200 text-sm">
+                ${db.categories.map(c => `<option value="${escapeHtml(c)}" ${existing?.category === c ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Nama Perangkat Ajar</label>
+              <input type="text" id="item-title" required value="${escapeHtml(existing?.title || "")}" placeholder="Contoh: Jurnal Mengajar Harian" class="w-full p-3 rounded-xl border border-orange-200 text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Keterangan / Petunjuk Upload</label>
+              <textarea id="item-desc" rows="3" required class="w-full p-3 rounded-xl border border-orange-200 text-sm" placeholder="Format .pdf atau .docx lengkap...">${escapeHtml(existing?.description || "")}</textarea>
+            </div>
+            <div class="flex justify-end">
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-orange-600 text-white text-sm font-semibold hover:bg-orange-700">Simpan Baris</button>
+            </div>
+          </form>
+        `);
+
+        document.getElementById("item-modal-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const category = document.getElementById("item-cat").value;
+          const title = document.getElementById("item-title").value.trim();
+          const description = document.getElementById("item-desc").value.trim();
+
+          if (existing) {
+            existing.category = category;
+            existing.title = title;
+            existing.description = description;
+          } else {
+            db.adminItems.push({
+              id: "itm-" + Date.now(),
+              order: db.adminItems.length + 1,
+              category,
+              title,
+              description,
+              required: true
+            });
+          }
+          saveDatabase();
+          closeModal();
+          renderActiveWorkspace();
+          showToast("Baris administrasi berhasil disimpan.", "success");
+        });
+      }
+
+      // =========================================================
+      // DASHBOARD ADMIN: AKUN GURU & GENERATOR AKUN OTOMATIS
+      // =========================================================
+      function renderAdminTeachersManager(container) {
+        container.innerHTML = `
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Form Tambah / Generate Akun Guru -->
+            <div class="glass-card rounded-3xl p-6 space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="font-display text-lg font-bold text-slate-900">Buat & Generate Akun Guru</h3>
+                <button type="button" id="auto-generate-cred-btn" class="px-3 py-1.5 rounded-xl bg-orange-100 text-orange-700 text-xs font-bold hover:bg-orange-200 transition">
+                  Auto Generate
+                </button>
+              </div>
+              <form id="create-teacher-form" class="space-y-3 text-sm">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap & Gelar</label>
+                  <input type="text" id="tch-name" required placeholder="Contoh: Drs. Ahmad Fauzi" class="w-full p-2.5 rounded-xl border border-orange-200 bg-white" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Kelas Ampuan</label>
+                  <input type="text" id="tch-class" list="class-suggestions" required placeholder="Contoh: Kelas X-C" class="w-full p-2.5 rounded-xl border border-orange-200 bg-white" />
+                  <datalist id="class-suggestions">
+                    ${db.classes.map(c => `<option value="${escapeHtml(c)}"></option>`).join("")}
+                  </datalist>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Mata Pelajaran</label>
+                  <input type="text" id="tch-subject" required placeholder="Contoh: Fisika" class="w-full p-2.5 rounded-xl border border-orange-200 bg-white" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp (awalan 62)</label>
+                  <input type="text" id="tch-wa" required placeholder="6281234567890" class="w-full p-2.5 rounded-xl border border-orange-200 bg-white" />
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Username</label>
+                    <input type="text" id="tch-user" required class="w-full p-2.5 rounded-xl border border-orange-200 bg-white" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+                    <input type="text" id="tch-pass" required class="w-full p-2.5 rounded-xl border border-orange-200 bg-white" />
+                  </div>
+                </div>
+                <button type="submit" class="w-full py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-md shadow-orange-500/20 hover:from-orange-600 hover:to-orange-700 transition">
+                  Simpan Akun Guru
+                </button>
+              </form>
+            </div>
+
+            <!-- Tabel Daftar Akun Guru -->
+            <div class="lg:col-span-2 glass-card rounded-3xl p-6">
+              <h3 class="font-display text-lg font-bold text-slate-900 mb-4">Daftar Akun Guru & Kelas (${db.teachers.length})</h3>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr class="border-b border-orange-200 text-xs uppercase text-slate-500 bg-orange-50/70">
+                      <th class="py-3 px-3">Kelas</th>
+                      <th class="py-3 px-3">Guru & Mapel</th>
+                      <th class="py-3 px-3">Akun Login</th>
+                      <th class="py-3 px-3">WhatsApp</th>
+                      <th class="py-3 px-3 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-orange-100">
+                    ${db.teachers.map(t => `
+                      <tr class="hover:bg-orange-50/40">
+                        <td class="py-3 px-3 font-bold text-orange-600">${escapeHtml(t.className)}</td>
+                        <td class="py-3 px-3">
+                          <div class="font-semibold text-slate-900">${escapeHtml(t.name)}</div>
+                          <div class="text-xs text-slate-500">${escapeHtml(t.subject)}</div>
+                        </td>
+                        <td class="py-3 px-3 font-mono text-xs">
+                          <div>User: <strong>${escapeHtml(t.username)}</strong></div>
+                          <div>Pass: <strong>${escapeHtml(t.password)}</strong></div>
+                        </td>
+                        <td class="py-3 px-3 text-xs">+${escapeHtml(t.whatsapp)}</td>
+                        <td class="py-3 px-3 text-right">
+                          <button data-del-teacher="${t.id}" class="px-3 py-1.5 rounded-xl bg-rose-100 text-rose-700 hover:bg-rose-200 text-xs font-semibold">Hapus</button>
+                        </td>
+                      </tr>
+                    `).join("")}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Auto Generate Username & Password dari Nama Guru
+        document.getElementById("auto-generate-cred-btn").addEventListener("click", () => {
+          const rawName = document.getElementById("tch-name").value.trim() || "guru";
+          const base = rawName.toLowerCase().replace(/[^a-z]/g, "").slice(0, 6) || "guru";
+          const randNum = Math.floor(100 + Math.random() * 900);
+          document.getElementById("tch-user").value = `${base}${randNum}`;
+          document.getElementById("tch-pass").value = `GR-${Math.floor(1000 + Math.random() * 9000)}`;
+          showToast("Username & password otomatis berhasil digenerate.", "info");
+        });
+
+        document.getElementById("create-teacher-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const name = document.getElementById("tch-name").value.trim();
+          const className = document.getElementById("tch-class").value.trim();
+          const subject = document.getElementById("tch-subject").value.trim();
+          const whatsapp = document.getElementById("tch-wa").value.replace(/\D/g, "");
+          const username = document.getElementById("tch-user").value.trim();
+          const password = document.getElementById("tch-pass").value.trim();
+
+          if (db.teachers.some(t => t.username === username)) {
+            showToast("Username sudah digunakan guru lain.", "error");
+            return;
+          }
+
+          if (!db.classes.includes(className)) db.classes.push(className);
+
+          db.teachers.push({
+            id: "tch-" + Date.now(),
+            name,
+            nip: "-",
+            subject,
+            className,
+            whatsapp,
+            username,
+            password
+          });
+
+          saveDatabase();
+          renderActiveWorkspace();
+          showToast(`Akun guru ${name} (${className}) berhasil dibuat.`, "success");
+        });
+
+        container.querySelectorAll("[data-del-teacher]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            db.teachers = db.teachers.filter(t => t.id !== btn.dataset.delTeacher);
+            saveDatabase();
+            renderActiveWorkspace();
+            showToast("Akun guru dihapus.", "info");
+          });
+        });
+      }
+
+      // =========================================================
+      // DASHBOARD ADMIN: PENGINGAT WHATSAPP OTOMATIS & BATAS WAKTU
+      // =========================================================
+      function renderAdminWhatsappManager(container) {
+        const now = new Date();
+        const deadlineDate = new Date(db.meta.deadline);
+        const isPastDeadline = now > deadlineDate;
+        const totalItems = db.adminItems.length;
+
+        const incompleteTeachers = db.teachers.filter(t => {
+          const uploaded = db.submissions.filter(s => s.teacherId === t.id).length;
+          return uploaded < totalItems;
+        });
+
+        container.innerHTML = `
+          <div class="glass-card rounded-3xl p-6 space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-orange-100">
+              <div>
+                <h3 class="font-display text-xl font-bold text-slate-900">Pengingat WhatsApp Otomatis & Batas Waktu</h3>
+                <p class="text-xs sm:text-sm text-slate-500">
+                  Guru yang belum melengkapi perangkat ajar akan terdeteksi otomatis berdasarkan tenggat waktu.
+                </p>
+              </div>
+              <div class="px-4 py-2.5 rounded-2xl ${isPastDeadline ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-800"} text-xs font-bold">
+                Status Tenggat: ${isPastDeadline ? "MELEWATI BATAS WAKTU" : "AKTIF BERJALAN"} (${formatDate(db.meta.deadline)})
+              </div>
+            </div>
+
+            <!-- Pengaturan Webhook WhatsApp Gateway (Opsional untuk Otomatisasi Server) -->
+            <form id="wa-settings-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-orange-50/70 p-4 rounded-2xl border border-orange-200/70">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Batas Waktu Pengumpulan</label>
+                <input type="datetime-local" id="wa-deadline-input" value="${db.meta.deadline}" class="w-full p-2.5 rounded-xl bg-white border border-orange-200 text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">URL Webhook WA Gateway (Opsional)</label>
+                <input type="url" id="wa-webhook-input" value="${escapeHtml(db.meta.whatsappWebhookUrl || "")}" placeholder="https://api.fonnte.com/send" class="w-full p-2.5 rounded-xl bg-white border border-orange-200 text-sm" />
+              </div>
+              <button type="submit" class="py-2.5 px-4 rounded-xl bg-orange-600 text-white text-sm font-semibold hover:bg-orange-700 transition">
+                Simpan Pengaturan Tenggat
+              </button>
+            </form>
+
+            <!-- Daftar Guru Belum Lengkap -->
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <h4 class="font-bold text-slate-900">Daftar Guru Belum Melengkapi Perangkat Ajar (${incompleteTeachers.length})</h4>
+              </div>
+
+              ${incompleteTeachers.length === 0 ? `
+                <div class="p-8 text-center rounded-2xl bg-emerald-50 text-emerald-700 font-semibold text-sm">
+                  Seluruh guru telah melengkapi semua dokumen perangkat ajar!
+                </div>
+              ` : `
+                <div class="space-y-3">
+                  ${incompleteTeachers.map(t => {
+                    const missingItems = db.adminItems.filter(itm => !db.submissions.some(s => s.teacherId === t.id && s.itemId === itm.id));
+                    return `
+                      <div class="p-4 rounded-2xl bg-white border border-orange-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-lg bg-orange-100 text-orange-700 text-xs font-bold">${escapeHtml(t.className)}</span>
+                            <h5 class="font-bold text-slate-900">${escapeHtml(t.name)}</h5>
+                          </div>
+                          <p class="text-xs text-rose-600 mt-1">
+                            Belum diunggah (${missingItems.length}): ${missingItems.map(m => escapeHtml(m.title)).join(", ")}
+                          </p>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                          <button data-send-notif="${t.id}" class="px-3.5 py-2 rounded-xl bg-orange-100 text-orange-700 text-xs font-semibold hover:bg-orange-200">
+                            Pesan Aplikasi
+                          </button>
+                          <button data-send-wa="${t.id}" class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 flex items-center gap-1.5">
+                            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                            <span>Kirim WhatsApp</span>
+                          </button>
+                        </div>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+
+        document.getElementById("wa-settings-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          db.meta.deadline = document.getElementById("wa-deadline-input").value;
+          db.meta.whatsappWebhookUrl = document.getElementById("wa-webhook-input").value.trim();
+          saveDatabase();
+          updateClockAndGreeting();
+          renderActiveWorkspace();
+          showToast("Pengaturan batas waktu & WhatsApp disimpan.", "success");
+        });
+
+        container.querySelectorAll("[data-send-wa]").forEach(btn => {
+          btn.addEventListener("click", () => triggerWhatsappReminder(btn.dataset.sendWa));
+        });
+
+        container.querySelectorAll("[data-send-notif]").forEach(btn => {
+          btn.addEventListener("click", () => openSendMessageModal(btn.dataset.sendNotif));
+        });
+      }
+
+      async function triggerWhatsappReminder(teacherId) {
+        const teacher = db.teachers.find(t => t.id === teacherId);
+        if (!teacher) return;
+        const missing = db.adminItems.filter(itm => !db.submissions.some(s => s.teacherId === teacher.id && s.itemId === itm.id));
+        const missingList = missing.map((m, i) => `${i + 1}. ${m.title}`).join("\n");
+
+        const text = `Yth. Bapak/Ibu ${teacher.name} (${teacher.className}),\n\nKami mengingatkan bahwa perangkat ajar berikut belum terunggah di sistem SIMPERA sebelum batas waktu (${formatDate(db.meta.deadline)}):\n${missingList}\n\nMohon segera melengkapinya dalam format .PDF atau .DOCX. Terima kasih.`;
+
+        // Catat juga ke notifikasi internal guru
+        db.notifications.push({
+          id: "ntf-" + Date.now(),
+          teacherId: teacher.id,
+          title: "Pengingat WhatsApp Terkirim",
+          message: `Admin mengirimkan pengingat kelengkapan ${missing.length} dokumen perangkat ajar.`,
+          type: "warning",
+          createdAt: new Date().toISOString(),
+          read: false
+        });
+        saveDatabase();
+
+        // Jika webhook URL diisi, kirim request otomatis ke gateway WA
+        if (db.meta.whatsappWebhookUrl) {
+          try {
+            await fetch(db.meta.whatsappWebhookUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ target: teacher.whatsapp, message: text })
+            });
+            showToast(`Pesan WhatsApp otomatis dikirim melalui Gateway ke ${teacher.name}.`, "success");
+            return;
+          } catch (err) {
+            showToast("Gateway tidak merespons, mengalihkan ke WhatsApp Web...", "warning");
+          }
+        }
+
+        // Buka WhatsApp Web / Aplikasi dengan pesan terisi otomatis
+        const waUrl = `https://wa.me/${teacher.whatsapp}?text=${encodeURIComponent(text)}`;
+        window.open(waUrl, "_blank", "noopener,noreferrer");
+        showToast(`Membuka WhatsApp untuk ${teacher.name}.`, "success");
+      }
+
+      function openSendMessageModal(teacherId) {
+        const teacher = db.teachers.find(t => t.id === teacherId);
+        if (!teacher) return;
+        openModal(`Kirim Pesan ke ${teacher.name}`, `
+          <form id="direct-msg-form" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Judul Pesan</label>
+              <input type="text" id="msg-title" required value="Info Kelengkapan Administrasi ${escapeHtml(teacher.className)}" class="w-full p-3 rounded-xl border border-orange-200 text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Isi Pesan / Instruksi Admin</label>
+              <textarea id="msg-body" rows="4" required class="w-full p-3 rounded-xl border border-orange-200 text-sm" placeholder="Tuliskan pesan untuk guru..."></textarea>
+            </div>
+            <div class="flex justify-end">
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-orange-600 text-white text-sm font-semibold hover:bg-orange-700">Kirim Notifikasi</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("direct-msg-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          db.notifications.push({
+            id: "ntf-" + Date.now(),
+            teacherId: teacher.id,
+            title: document.getElementById("msg-title").value.trim(),
+            message: document.getElementById("msg-body").value.trim(),
+            type: "warning",
+            createdAt: new Date().toISOString(),
+            read: false
+          });
+          saveDatabase();
+          closeModal();
+          showToast(`Notifikasi berhasil dikirim ke akun ${teacher.name}.`, "success");
+        });
+      }
+
+      // =========================================================
+      // DASHBOARD ADMIN: DATABASE & SINKRONISASI KE GITHUB
+      // =========================================================
+      function renderAdminGithubSync(container) {
+        const gh = db.meta.github;
+        container.innerHTML = `
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Form Konfigurasi Repositori GitHub -->
+            <div class="glass-card rounded-3xl p-6 space-y-4">
+              <div>
+                <h3 class="font-display text-xl font-bold text-slate-900">Sinkronisasi Database ke GitHub</h3>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                  Kirim seluruh data aplikasi (akun guru, item administrasi, riwayat unggahan) langsung ke file <code>database.json</code> di repositori GitHub Anda.
+                </p>
+              </div>
+
+              <form id="github-config-form" class="space-y-3 text-sm">
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Username / Owner GitHub</label>
+                    <input type="text" id="gh-owner" required value="${escapeHtml(gh.owner)}" placeholder="contoh: feriapriansah" class="w-full p-2.5 rounded-xl border border-orange-200 bg-white" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Nama Repositori</label>
+                    <input type="text" id="gh-repo" required value="${escapeHtml(gh.repo)}" placeholder="contoh: simpera-perangkat-ajar" class="w-full p-2.5 rounded-xl border border-orange-200 bg-white" />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Branch</label>
+                    <input type="text" id="gh-branch" required value="${escapeHtml(gh.branch || "main")}" class="w-full p-2.5 rounded-xl border border-orange-200 bg-white" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Nama File Database</label>
+                    <input type="text" id="gh-path" required value="${escapeHtml(gh.path || "database.json")}" class="w-full p-2.5 rounded-xl border border-orange-200 bg-white" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1">GitHub Personal Access Token (PAT - Repo Scope)</label>
+                  <input type="password" id="gh-token" value="${escapeHtml(gh.token)}" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full p-2.5 rounded-xl border border-orange-200 bg-white" />
+                </div>
+
+                <div class="flex flex-wrap gap-2 pt-2">
+                  <button type="submit" class="px-4 py-2.5 rounded-xl bg-slate-800 text-white font-semibold hover:bg-slate-900 transition">
+                    Simpan Konfigurasi
+                  </button>
+                  <button type="button" id="push-github-btn" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-md shadow-orange-500/20 hover:from-orange-600 hover:to-orange-700 transition">
+                    Kirim Database ke GitHub (Push)
+                  </button>
+                  <button type="button" id="pull-github-btn" class="px-4 py-2.5 rounded-xl bg-orange-100 text-orange-700 font-semibold hover:bg-orange-200 transition">
+                    Tarik dari GitHub (Pull)
+                  </button>
+                </div>
+              </form>
+
+              <p class="text-xs text-slate-500">
+                Sinkronisasi terakhir: <strong>${gh.lastSync ? formatDate(gh.lastSync) : "Belum pernah disinkronkan"}</strong>
+              </p>
+            </div>
+
+            <!-- Ekspor / Unduh File database.json Siap Upload -->
+            <div class="glass-card rounded-3xl p-6 flex flex-col justify-between space-y-4">
+              <div class="space-y-3">
+                <h3 class="font-display text-xl font-bold text-slate-900">File Database JSON</h3>
+                <p class="text-xs sm:text-sm text-slate-500">
+                  Anda juga dapat mengunduh file <code>database.json</code> secara langsung untuk diunggah manual ke repositori GitHub bersama file <code>index.html</code>.
+                </p>
+                <pre class="p-4 rounded-2xl bg-slate-900 text-orange-200 text-xs overflow-x-auto max-h-60">${escapeHtml(JSON.stringify({
+                  meta: { ...db.meta, github: { ...db.meta.github, token: "***HIDDEN***" } },
+                  teachers_count: db.teachers.length,
+                  admin_items_count: db.adminItems.length,
+                  submissions_count: db.submissions.length
+                }, null, 2))}</pre>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <button type="button" id="download-db-json-btn" class="px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition">
+                  Unduh database.json
+                </button>
+                <button type="button" id="reset-demo-db-btn" class="px-4 py-2.5 rounded-xl bg-rose-100 text-rose-700 text-sm font-semibold hover:bg-rose-200 transition">
+                  Reset Data Awal
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.getElementById("github-config-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          db.meta.github.owner = document.getElementById("gh-owner").value.trim();
+          db.meta.github.repo = document.getElementById("gh-repo").value.trim();
+          db.meta.github.branch = document.getElementById("gh-branch").value.trim() || "main";
+          db.meta.github.path = document.getElementById("gh-path").value.trim() || "database.json";
+          db.meta.github.token = document.getElementById("gh-token").value.trim();
+          saveDatabase();
+          showToast("Konfigurasi repositori GitHub tersimpan.", "success");
+        });
+
+        document.getElementById("push-github-btn").addEventListener("click", pushDatabaseToGithub);
+        document.getElementById("pull-github-btn").addEventListener("click", pullDatabaseFromGithub);
+
+        document.getElementById("download-db-json-btn").addEventListener("click", () => {
+          const cleanDb = JSON.parse(JSON.stringify(db));
+          cleanDb.meta.github.token = ""; // Jangan ekspor token rahasia ke file publik
+          const blob = new Blob([JSON.stringify(cleanDb, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "database.json";
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast("File database.json berhasil diunduh.", "success");
+        });
+
+        document.getElementById("reset-demo-db-btn").addEventListener("click", () => {
+          db = JSON.parse(JSON.stringify(DEFAULT_DB));
+          saveDatabase();
+          renderActiveWorkspace();
+          showToast("Database berhasil dikembalikan ke pengaturan awal.", "info");
+        });
+      }
+
+      async function pushDatabaseToGithub() {
+        const { owner, repo, branch, path, token } = db.meta.github;
+        if (!owner || !repo || !token) {
+          showToast("Lengkapi Owner, Nama Repositori, dan Personal Access Token terlebih dahulu.", "warning");
+          return;
+        }
+
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+        try {
+          showToast("Mengirim database ke GitHub...", "info");
+          let sha = null;
+          const checkRes = await fetch(`${apiUrl}?ref=${branch}`, {
+            headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" }
+          });
+          if (checkRes.ok) {
+            const existingFile = await checkRes.json();
+            sha = existingFile.sha;
+          }
+
+          const cleanDb = JSON.parse(JSON.stringify(db));
+          cleanDb.meta.github.token = "";
+          const jsonStr = JSON.stringify(cleanDb, null, 2);
+          const base64Content = btoa(unescape(encodeURIComponent(jsonStr)));
+
+          const putRes = await fetch(apiUrl, {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/vnd.github+json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              message: `Sync database SIMPERA (${new Date().toISOString()})`,
+              content: base64Content,
+              branch,
+              ...(sha ? { sha } : {})
+            })
+          });
+
+          if (!putRes.ok) {
+            const errData = await putRes.json();
+            throw new Error(errData.message || "Gagal push ke GitHub");
+          }
+
+          db.meta.github.lastSync = new Date().toISOString();
+          saveDatabase();
+          renderActiveWorkspace();
+          showToast("Database berhasil dikirim dan diperbarui di repositori GitHub!", "success");
+        } catch (err) {
+          showToast(`Gagal sinkronisasi GitHub: ${err.message}`, "error");
+        }
+      }
+
+      async function pullDatabaseFromGithub() {
+        const { owner, repo, branch, path, token } = db.meta.github;
+        if (!owner || !repo) {
+          showToast("Isi Owner dan Nama Repositori GitHub terlebih dahulu.", "warning");
+          return;
+        }
+        try {
+          const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}?t=${Date.now()}`;
+          const res = await fetch(rawUrl);
+          if (!res.ok) throw new Error("File database.json tidak ditemukan di branch tersebut.");
+          const remoteDb = await res.json();
+          remoteDb.meta.github.token = token;
+          db = remoteDb;
+          saveDatabase();
+          renderActiveWorkspace();
+          showToast("Database berhasil dimuat dari GitHub!", "success");
+        } catch (err) {
+          showToast(`Gagal memuat dari GitHub: ${err.message}`, "error");
+        }
+      }
+
+      // =========================================================
+      // DASHBOARD ADMIN: PENGUMUMAN RUNNING TEXT & PENGATURAN
+      // =========================================================
+      function renderAdminSettings(container) {
+        container.innerHTML = `
+          <div class="glass-card rounded-3xl p-6 max-w-2xl space-y-5">
+            <h3 class="font-display text-xl font-bold text-slate-900">Pengaturan Sekolah & Pengumuman Running Text</h3>
+            <form id="general-settings-form" class="space-y-4 text-sm">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Nama Satuan Pendidikan</label>
+                <input type="text" id="set-school" required value="${escapeHtml(db.meta.schoolName)}" class="w-full p-3 rounded-xl border border-orange-200 bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Teks Berjalan (Running Text Pengumuman)</label>
+                <textarea id="set-announcement" rows="3" required class="w-full p-3 rounded-xl border border-orange-200 bg-white">${escapeHtml(db.meta.announcement)}</textarea>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Username Admin</label>
+                  <input type="text" id="set-admin-user" required value="${escapeHtml(db.admin.username)}" class="w-full p-3 rounded-xl border border-orange-200 bg-white" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Password Admin</label>
+                  <input type="text" id="set-admin-pass" required value="${escapeHtml(db.admin.password)}" class="w-full p-3 rounded-xl border border-orange-200 bg-white" />
+                </div>
+              </div>
+              <button type="submit" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-md shadow-orange-500/20">
+                Simpan Perubahan
+              </button>
+            </form>
+          </div>
+        `;
+
+        document.getElementById("general-settings-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          db.meta.schoolName = document.getElementById("set-school").value.trim();
+          db.meta.announcement = document.getElementById("set-announcement").value.trim();
+          db.admin.username = document.getElementById("set-admin-user").value.trim();
+          db.admin.password = document.getElementById("set-admin-pass").value.trim();
+          saveDatabase();
+          renderHeaderInfo();
+          renderSidebar();
+          showToast("Pengaturan sekolah dan teks pengumuman diperbarui.", "success");
+        });
+      }
+
+      // =========================================================
+      // INISIALISASI GLOBAL
+      // =========================================================
+      window.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("current-year").textContent = new Date().getFullYear();
+        initLoginEvents();
+
+        document.getElementById("logout-btn").addEventListener("click", logout);
+        document.getElementById("open-sidebar-btn").addEventListener("click", () => {
+          document.getElementById("sidebar").classList.remove("-translate-x-full");
+          document.getElementById("sidebar-backdrop").classList.remove("hidden");
+        });
+        document.getElementById("close-sidebar-btn").addEventListener("click", closeMobileSidebar);
+        document.getElementById("sidebar-backdrop").addEventListener("click", closeMobileSidebar);
+
+        document.getElementById("header-notif-btn").addEventListener("click", () => {
+          if (!session) return;
+          activeTab = session.role === "teacher" ? "teacher-notifications" : "admin-submissions";
+          renderSidebar();
+          renderActiveWorkspace();
+        });
+
+        document.getElementById("modal-close-btn").addEventListener("click", closeModal);
+        document.getElementById("modal-backdrop").addEventListener("click", (e) => {
+          if (e.target.id === "modal-backdrop") closeModal();
+        });
+
+        updateClockAndGreeting();
+        setInterval(updateClockAndGreeting, 1000);
+        lucide.createIcons();
+      });
+    })();
+  </script>
+</body>
+</html>

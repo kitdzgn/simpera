@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "appName": "SIMPERA",
+    "schoolName": "SMA Negeri Nusantara",
+    "academicYear": "2026/2027 - Semester Ganjil",
+    "deadline": "2026-11-30T23:59",
+    "announcement": "Batas akhir pengumpulan Perangkat Ajar Semester Ganjil adalah 30 November 2026 pukul 23.59 WIB. Pastikan dokumen berformat .PDF atau .DOCX.",
+    "github": {
+      "owner": "",
+      "repo": "",
+      "branch": "main",
+      "path": "database.json",
+      "token": "",
+      "lastSync": null
+    },
+    "whatsappWebhookUrl": ""
+  },
+  "admin": {
+    "username": "admin",
+    "password": "123",
+    "name": "Administrator Kurikulum"
+  },
+  "classes": [
+    "Kelas X-A",
+    "Kelas X-B",
+    "Kelas XI-IPA",
+    "Kelas XI-IPS",
+    "Kelas XII-IPA",
+    "Kelas XII-IPS"
+  ],
+  "categories": [
+    "Perencanaan Pembelajaran",
+    "Pelaksanaan & Bahan Ajar",
+    "Asesmen & Evaluasi"
+  ],
+  "teachers": [
+    {
+      "id": "tch-1",
+      "name": "Feri Apriansah, M.Pd. Gr.",
+      "nip": "199004122015031004",
+      "subject": "Informatika",
+      "className": "Kelas X-A",
+      "whatsapp": "6281234567890",
+      "username": "feri",
+      "password": "123"
+    },
+    {
+      "id": "tch-2",
+      "name": "Siti Rahmawati, S.Pd.",
+      "nip": "199208172019032011",
+      "subject": "Matematika",
+      "className": "Kelas X-B",
+      "whatsapp": "6281298765432",
+      "username": "siti",
+      "password": "123"
+    },
+    {
+      "id": "tch-3",
+      "name": "Budi Santoso, M.Pd.",
+      "nip": "198811052014021002",
+      "subject": "Bahasa Indonesia",
+      "className": "Kelas XI-IPA",
+      "whatsapp": "6281355566677",
+      "username": "budi",
+      "password": "123"
+    }
+  ],
+  "adminItems": [
+    {
+      "id": "itm-1",
+      "order": 1,
+      "category": "Perencanaan Pembelajaran",
+      "title": "Capaian Pembelajaran (CP) & ATP",
+      "description": "Alur Tujuan Pembelajaran lengkap satu tahun ajaran (.pdf / .docx)",
+      "required": true
+    },
+    {
+      "id": "itm-2",
+      "category": "Perencanaan Pembelajaran",
+      "order": 2,
+      "title": "Modul Ajar / RPP Berdiferensiasi",
+      "description": "Modul ajar lengkap beserta lampiran asesmen formatif (.pdf / .docx)",
+      "required": true
+    },
+    {
+      "id": "itm-3",
+      "category": "Perencanaan Pembelajaran",
+      "order": 3,
+      "title": "Program Tahunan & Program Semester",
+      "description": "Prota dan Promes sesuai kalender akademik (.pdf / .docx)",
+      "required": true
+    },
+    {
+      "id": "itm-4",
+      "category": "Pelaksanaan & Bahan Ajar",
+      "order": 4,
+      "title": "Bahan Ajar / LKPD Siswa",
+      "description": "Lembar Kerja Peserta Didik terstruktur (.pdf / .docx)",
+      "required": true
+    },
+    {
+      "id": "itm-5",
+      "category": "Asesmen & Evaluasi",
+      "order": 5,
+      "title": "Kisi-Kisi & Instrumen Penilaian Sumatif",
+      "description": "Kisi-kisi soal, rubrik penilaian, dan pedoman penskoran (.pdf / .docx)",
+      "required": true
+    }
+  ],
+  "submissions": [
+    {
+      "id": "sub-1",
+      "teacherId": "tch-1",
+      "className": "Kelas X-A",
+      "itemId": "itm-1",
+      "fileName": "CP_ATP_Informatika_XA.pdf",
+      "fileType": "application/pdf",
+      "fileSize": 248320,
+      "fileDataUrl": "",
+      "uploadedAt": "2026-11-20T09:15:00.000Z",
+      "status": "Diterima",
+      "adminNote": "Dokumen lengkap dan sesuai format kurikulum."
+    }
+  ],
+  "notifications": [
+    {
+      "id": "ntf-1",
+      "teacherId": "tch-1",
+      "title": "Perangkat Ajar Diterima",
+      "message": "Dokumen CP & ATP Anda telah diverifikasi dan diterima oleh Admin Kurikulum.",
+      "type": "success",
+      "createdAt": "2026-11-20T09:30:00.000Z",
+      "read": false
+    },
+    {
+      "id": "ntf-2",
+      "teacherId": "tch-2",
+      "title": "Pengingat Kelengkapan Administrasi",
+      "message": "Mohon segera mengunggah Modul Ajar dan Prota/Promes untuk Kelas X-B sebelum tenggat waktu.",
+      "type": "warning",
+      "createdAt": "2026-11-21T08:00:00.000Z",
+      "read": false
+    }
+  ]
+}
